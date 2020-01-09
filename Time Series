@@ -1,0 +1,29 @@
+##------------------------------------------------------------------------------
+
+# import packages
+library(fpp2)
+library(tidyverse)
+
+##------------------------------------------------------------------------------
+
+# filepath
+file <- "F:/Data Science/R/Time Series/daily-total-female-births-CA.csv"
+
+# load data as dataframe
+df <- read.csv(file, header = T, na.strings = c("", "NA", "NULL"), 
+               strip.white = T, stringsAsFactors = T)
+
+##------------------------------------------------------------------------------
+
+## convert dataframe to time series
+# we can use 'ts' or 'msts' function to convert data into time series
+# 'ts' function can be used to only specify one type of seasonl pattern
+# 'msts' function can be used to specify multiple seasonal patterns
+# data is captured daily: weekly and annual seasonal patterns are possible 
+ts_data <- msts(df[["births"]], seasonal.periods = 7)
+
+## time series plot
+# x-axis shows weeks as we have specified weekly seasonal pattern
+autoplot(ts_data, series = "Births", ylab = "", xlab = "Weeks") + 
+  theme(panel.background = element_rect(fill = "white", colour = "black")) + 
+  scale_color_manual(values = rainbow(1))
