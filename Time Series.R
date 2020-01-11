@@ -42,17 +42,30 @@ autoplot(ts_data, series = "Births", ylab = "", xlab = "Weeks") +
 ##------------------------------------------------------------------------------
 
 ## time series decomposition
-# time series has 3 components: trend-cycle (trend), seasonal, white noise (remainder)
-# time series can be decomposed using different functions
-# here, 'mstl' function is used to decompose the time series
+# time series has 3 components: trend-cycle, seasonal, white noise (remainder)
+# 'mstl' function is used to decompose a time series
+# 'mstl' is an extension of 'stl' to handle multiple seasonalities
 mstl(ts_data)%>%
   autoplot(col = T) +
   theme(panel.background = element_rect(fill = "white", colour = "black")) + 
   scale_color_manual(values = rainbow(4))
-  
-  
-  
-  
-  
-  
 
+##------------------------------------------------------------------------------  
+
+## extract time series components
+
+# trend (t), seasonal (s), remainder(r)
+# the respective function accepts a decomposed ts object
+# decomposed ts object can be created usign different functions
+t <- trendcycle(mstl(ts_data))
+s <- seasonal(mstl(ts_data))
+r <- remainder(mstl(ts_data))
+
+# plot
+# choose t, s or r depending upon the plot
+# change ylab depending upon the component
+# change color if desired
+autoplot(r, col = "green", ylab = "Remainder", xlab = "Weeks") + 
+  theme(panel.background = element_rect(fill = "white", colour = "black"))
+
+##------------------------------------------------------------------------------  
