@@ -86,4 +86,13 @@ ggPacf(ts_data, lag.max = 70) +
 
 ##------------------------------------------------------------------------------------------
 
+# noise has no autocorrelation
+# in real-world data, autocorrelation would be close to zero and not exactly zero
+# exactly zero autocorrelation is impractical as even noise has some variation
+ggAcf(r, lag.max = 70) + 
+  labs(title = "Noise") +
+  theme(panel.background = element_rect(fill = "white", colour = "black"))
+
+
+##------------------------------------------------------------------------------------------
 
