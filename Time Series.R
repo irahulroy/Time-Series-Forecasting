@@ -75,18 +75,15 @@ autoplot(window(s, start = 1, end = 16), col = "blue", ylab = "Seasonal", xlab =
 
 ## autocorrelations
 # acf = autocorrelation function
-ggAcf(ts_data) + 
+ggAcf(ts_data, lag.max = 70) + 
+  labs(title = "CA Female Birth Data") +
   theme(panel.background = element_rect(fill = "white", colour = "black"))
 
 # pacf = partial autocorrelation function
-ggPacf(ts_data) + 
+ggPacf(ts_data, lag.max = 70) +
+  labs(title = "CA Female Birth Data") +
   theme(panel.background = element_rect(fill = "white", colour = "black"))
 
 ##------------------------------------------------------------------------------------------
 
-
-
-
-
-##------------------------------------------------------------------------------------------
 
