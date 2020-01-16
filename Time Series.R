@@ -93,6 +93,53 @@ ggAcf(r, lag.max = 70) +
   labs(title = "Noise") +
   theme(panel.background = element_rect(fill = "white", colour = "black"))
 
+##------------------------------------------------------------------------------------------
+
+## train-test split
+
+# specify fraction of training data (p)
+# compute number of training set observations
+p <- 0.8
+train_length <- ceiling(p*length(ts_data))
+
+# first 80% observations in training data
+# last 20% observations in test data
+ts_train <- head(ts_data, train_length)
+ts_test <- tail(ts_data, (length(ts_data) - train_length))
 
 ##------------------------------------------------------------------------------------------
+
+## simple forecasting methods
+
+# set forecasting horizon (h) 
+h <- length(ts_test)
+
+# naive = naive forecast
+# rwf = random walk forecast (same as naive: use one of them) 
+# meanf = mean forecast
+# snaive = seasonal naive forecast
+# rwf with drift
+
+# forecasts on training data
+autoplot(ts_train, series = "Train Data") + 
+  autolayer(meanf(ts_train, h = h), series = "Mean", PI = F) + 
+  autolayer(rwf(ts_train, h = h), series = "RWF (Naive)", PI = F) + 
+  autolayer(snaive(ts_train, h = h), series = "Seasonal Naive", PI = F) + 
+  autolayer(rwf(ts_train, h = h, drift = T), series = "RWF with Drift", PI = F) + 
+  labs(title = "Forecasts", x = "Weeks", y = "Female Birth") + 
+  theme(panel.background = element_rect(fill = "white", colour = "black")) + 
+  scale_color_manual(values = rainbow(5))
+
+# comparison of forecasts with test data
+autoplot(ts_test, series = "Test Data") + 
+  autolayer(meanf(ts_train, h = h), series = "Mean", PI = F) + 
+  autolayer(rwf(ts_train, h = h), series = "RWF (Naive)", PI = F) + 
+  autolayer(snaive(ts_train, h = h), series = "Seasonal Naive", PI = F) + 
+  autolayer(rwf(ts_train, h = h, drift = T), series = "RWF with Drift", PI = F) + 
+  labs(title = "Forecasts vs Test Data", x = "Weeks", y = "Female Birth") + 
+  theme(panel.background = element_rect(fill = "white", colour = "black")) + 
+  scale_color_manual(values = rainbow(5))
+
+##------------------------------------------------------------------------------------------
+
 
