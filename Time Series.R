@@ -121,25 +121,38 @@ h <- length(ts_test)
 # rwf with drift
 
 # forecasts on training data
+fcast_mean <- meanf(ts_train, h = h) # mean forecast
+fcast_rwf <- rwf(ts_train, h = h) # random walk forecast
+fcast_snaive <- snaive(ts_train, h = h) # seasonal naive forecast
+fcast_rwfd <- rwf(ts_train, h = h, drift = T) # random walk forecast with drift
+
+# forecast plots
 autoplot(ts_train, series = "Train Data") + 
-  autolayer(meanf(ts_train, h = h), series = "Mean", PI = F) + 
-  autolayer(rwf(ts_train, h = h), series = "RWF (Naive)", PI = F) + 
-  autolayer(snaive(ts_train, h = h), series = "Seasonal Naive", PI = F) + 
-  autolayer(rwf(ts_train, h = h, drift = T), series = "RWF with Drift", PI = F) + 
+  autolayer(fcast_mean, series = "Mean", PI = F) + 
+  autolayer(fcast_rwf, series = "RWF (Naive)", PI = F) + 
+  autolayer(fcast_snaive, series = "Seasonal Naive", PI = F) + 
+  autolayer(fcast_rwfd, series = "RWF with Drift", PI = F) + 
   labs(title = "Forecasts", x = "Weeks", y = "Female Birth") + 
   theme(panel.background = element_rect(fill = "white", colour = "black")) + 
   scale_color_manual(values = rainbow(5))
 
 # comparison of forecasts with test data
 autoplot(ts_test, series = "Test Data") + 
-  autolayer(meanf(ts_train, h = h), series = "Mean", PI = F) + 
-  autolayer(rwf(ts_train, h = h), series = "RWF (Naive)", PI = F) + 
-  autolayer(snaive(ts_train, h = h), series = "Seasonal Naive", PI = F) + 
-  autolayer(rwf(ts_train, h = h, drift = T), series = "RWF with Drift", PI = F) + 
+  autolayer(fcast_mean, series = "Mean", PI = F) + 
+  autolayer(fcast_rwf, series = "RWF (Naive)", PI = F) + 
+  autolayer(fcast_snaive, series = "Seasonal Naive", PI = F) + 
+  autolayer(fcast_rwfd, series = "RWF with Drift", PI = F) + 
   labs(title = "Forecasts vs Test Data", x = "Weeks", y = "Female Birth") + 
   theme(panel.background = element_rect(fill = "white", colour = "black")) + 
   scale_color_manual(values = rainbow(5))
 
+# accuracy of forecasts (RMSE, MAE, MAPE)
+# select forecast to be assessed
+fcast <- fcast_rwfd
+accuracy(f = fcast, x = ts_test)[, c("RMSE", "MAE", "MAPE")]
+
 ##------------------------------------------------------------------------------------------
+
+
 
 
