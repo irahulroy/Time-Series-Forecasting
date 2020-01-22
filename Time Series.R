@@ -1,7 +1,8 @@
 
+
 ##------------------------------------------------------------------------------------------
 
-# WORK IN PROGRESS
+# TUTORIAL IN PROGRESS
 
 ##------------------------------------------------------------------------------------------
 
@@ -152,11 +153,24 @@ autoplot(ts_test, series = "Test Data") +
 
 # accuracy of forecasts (RMSE, MAE, MAPE)
 # select forecast to be assessed
-fcast <- fcast_rwfd
+fcast <- fcast_rwf
 accuracy(f = fcast, x = ts_test)[, c("RMSE", "MAE", "MAPE")]
 
 ##------------------------------------------------------------------------------------------
 
+## residual analysis
 
+# select forecast to be assessed
+fcast <- fcast_rwf
 
+# time plot, acf and histogram
+checkresiduals(fcast)
+
+# mean forecast
+mean(fcast$mean)
+
+# mean of residuals
+mean(fcast$residuals, na.rm = T)
+
+##------------------------------------------------------------------------------------------
 
