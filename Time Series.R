@@ -131,44 +131,13 @@ fcast_rwf <- rwf(ts_train, h = h) # random walk forecast
 fcast_snaive <- snaive(ts_train, h = h) # seasonal naive forecast
 fcast_rwfd <- rwf(ts_train, h = h, drift = T) # random walk forecast with drift
 
-# forecast plots
-autoplot(ts_train, series = "Train Data") + 
-  autolayer(fcast_mean, series = "Mean", PI = F) + 
-  autolayer(fcast_rwf, series = "RWF (Naive)", PI = F) + 
-  autolayer(fcast_snaive, series = "Seasonal Naive", PI = F) + 
-  autolayer(fcast_rwfd, series = "RWF with Drift", PI = F) + 
-  labs(title = "Forecasts", x = "Weeks", y = "Female Birth") + 
-  theme(panel.background = element_rect(fill = "white", colour = "black")) + 
-  scale_color_manual(values = rainbow(5))
-
-# comparison of forecasts with test data
-autoplot(ts_test, series = "Test Data") + 
-  autolayer(fcast_mean, series = "Mean", PI = F) + 
-  autolayer(fcast_rwf, series = "RWF (Naive)", PI = F) + 
-  autolayer(fcast_snaive, series = "Seasonal Naive", PI = F) + 
-  autolayer(fcast_rwfd, series = "RWF with Drift", PI = F) + 
-  labs(title = "Forecasts vs Test Data", x = "Weeks", y = "Female Birth") + 
-  theme(panel.background = element_rect(fill = "white", colour = "black")) + 
-  scale_color_manual(values = rainbow(5))
-
-##------------------------------------------------------------------------------------------
-
-## prediction intervals
-
-# for normally distributed residuals with constant variance
-lower_pi <- fcast$lower; head(lower_pi)
-upper_pi <- fcast$upper; head(upper_pi)
-
-# to compute bootstrapped prediction intervals, do the following:
-# while fitting the model add the argument 'bootstrap = T'
-# for instance: fcast_rwf = rwf(ts_train, h = h, bootstrap = T)
-
 ##------------------------------------------------------------------------------------------
 
 ## time series regression
 
-# regression using trend and season
-fit_reg <- tslm(formula = ts_train ~ trend + season, data = ts_train)
+# regression using predictors that are inherently present
+# we can use either trend, season or both if we are considering only these two
+fit_reg <- tslm(formula = ts_train ~ season, data = ts_train)
 summary(fit_reg)
 
 # plot of fitted values
@@ -181,19 +150,44 @@ autoplot(ts_train, series = "Train Data") +
 # forecast using ts regression
 fcast_reg <- forecast(fit_reg, h = h)
 
-# plot of forecasts
+##------------------------------------------------------------------------------------------
+
+# forecast plots
 autoplot(ts_train, series = "Train Data") + 
-  autolayer(fcast_reg, series = "Forecasts", PI = F) + 
+  autolayer(fcast_mean, series = "Mean", PI = F) + 
+  autolayer(fcast_rwf, series = "RWF (Naive)", PI = F) + 
+  autolayer(fcast_snaive, series = "Seasonal Naive", PI = F) + 
+  autolayer(fcast_rwfd, series = "RWF with Drift", PI = F) + 
+  autolayer(fcast_reg, series = "Linear Regression", PI = F) +
   labs(title = "Forecasts", x = "Weeks", y = "Female Birth") + 
   theme(panel.background = element_rect(fill = "white", colour = "black")) + 
-  scale_color_manual(values = rainbow(2))
+  scale_color_manual(values = rainbow(6))
 
-# forecasts vs test data
+# comparison of forecasts with test data
 autoplot(ts_test, series = "Test Data") + 
-  autolayer(fcast_reg, series = "Forecasts", PI = F) + 
+  autolayer(fcast_mean, series = "Mean", PI = F) + 
+  autolayer(fcast_rwf, series = "RWF (Naive)", PI = F) + 
+  autolayer(fcast_snaive, series = "Seasonal Naive", PI = F) + 
+  autolayer(fcast_rwfd, series = "RWF with Drift", PI = F) + 
+  autolayer(fcast_reg, series = "Linear Regression", PI = F) + 
   labs(title = "Forecasts vs Test Data", x = "Weeks", y = "Female Birth") + 
   theme(panel.background = element_rect(fill = "white", colour = "black")) + 
-  scale_color_manual(values = rainbow(2))
+  scale_color_manual(values = rainbow(6))
+
+##------------------------------------------------------------------------------------------
+
+## prediction intervals
+
+# select forecast to be assessed
+fcast <- fcast_reg
+
+# for normally distributed residuals with constant variance
+lower_pi <- fcast$lower; head(lower_pi)
+upper_pi <- fcast$upper; head(upper_pi)
+
+# to compute bootstrapped prediction intervals, do the following:
+# while fitting the model add the argument 'bootstrap = T'
+# for instance: fcast_rwf = rwf(ts_train, h = h, bootstrap = T)
 
 ##------------------------------------------------------------------------------------------
 
