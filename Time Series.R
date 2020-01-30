@@ -152,16 +152,34 @@ fcast_reg <- forecast(fit_reg, h = h)
 
 ##------------------------------------------------------------------------------------------
 
+## exponential smoothing
+
+# data has both trend and seasonal components
+# holt-winter's seasonal method to be used
+# we can test with both linear and damped trends
+# we can test with both additive and multiplicative methods
+
+# linear trend, additive seasonality
+fcast_hws_al <- hw(ts_train, seasonal = "additive", h = h)
+# linear trend, multiplicative seasonality
+fcast_hws_ml <- hw(ts_train, seasonal = "multiplicative", h = h)
+
+# damped trend, additive seasonality
+fcast_hws_ad <- hw(ts_train, seasonal = "additive", damped = T, h = h)
+# damped trend, multiplicative seasonality
+fcast_hws_md <- hw(ts_train, seasonal = "multiplicative", damped = T, h =h)
+
+##------------------------------------------------------------------------------------------
+
 # forecast plots
 autoplot(ts_train, series = "Train Data") + 
-  autolayer(fcast_mean, series = "Mean", PI = F) + 
-  autolayer(fcast_rwf, series = "RWF (Naive)", PI = F) + 
-  autolayer(fcast_snaive, series = "Seasonal Naive", PI = F) + 
-  autolayer(fcast_rwfd, series = "RWF with Drift", PI = F) + 
-  autolayer(fcast_reg, series = "Linear Regression", PI = F) +
+  autolayer(fcast_hws_al, series = "HW Seasonal (Linear, Additive)", PI = F) + 
+  autolayer(fcast_hws_ml, series = "HW Seasonal (Linear, Multiplicative)", PI = F) + 
+  autolayer(fcast_hws_ad, series = "HW Seasonal (Damped, Additive)", PI = F) + 
+  autolayer(fcast_hws_md, series = "HW Seasonal (Damped, Multiplicative)", PI = F) + 
   labs(title = "Forecasts", x = "Weeks", y = "Female Birth") + 
   theme(panel.background = element_rect(fill = "white", colour = "black")) + 
-  scale_color_manual(values = rainbow(6))
+  scale_color_manual(values = rainbow(5))
 
 # comparison of forecasts with test data
 autoplot(ts_test, series = "Test Data") + 
@@ -179,7 +197,7 @@ autoplot(ts_test, series = "Test Data") +
 ## prediction intervals
 
 # select forecast to be assessed
-fcast <- fcast_reg
+fcast <- fcast_hws_al
 
 # for normally distributed residuals with constant variance
 lower_pi <- fcast$lower; head(lower_pi)
@@ -193,7 +211,7 @@ upper_pi <- fcast$upper; head(upper_pi)
 
 # accuracy of forecasts (RMSE, MAE, MAPE)
 # select forecast to be assessed
-fcast <- fcast_reg
+fcast <- fcast_hws_ad
 accuracy(f = fcast, x = ts_test)[, c("RMSE", "MAE", "MAPE")]
 
 ##------------------------------------------------------------------------------------------
