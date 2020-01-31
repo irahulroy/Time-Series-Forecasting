@@ -172,7 +172,7 @@ fcast_hws_md <- hw(ts_train, seasonal = "multiplicative", damped = T, h =h)
 ##------------------------------------------------------------------------------------------
 
 # forecast plots
-autoplot(ts_train, series = "Train Data") + 
+autoplot(tail(ts_train, 10), series = "Train Data") + 
   autolayer(fcast_hws_al, series = "HW Seasonal (Linear, Additive)", PI = F) + 
   autolayer(fcast_hws_ml, series = "HW Seasonal (Linear, Multiplicative)", PI = F) + 
   autolayer(fcast_hws_ad, series = "HW Seasonal (Damped, Additive)", PI = F) + 
@@ -183,14 +183,13 @@ autoplot(ts_train, series = "Train Data") +
 
 # comparison of forecasts with test data
 autoplot(ts_test, series = "Test Data") + 
-  autolayer(fcast_mean, series = "Mean", PI = F) + 
-  autolayer(fcast_rwf, series = "RWF (Naive)", PI = F) + 
-  autolayer(fcast_snaive, series = "Seasonal Naive", PI = F) + 
-  autolayer(fcast_rwfd, series = "RWF with Drift", PI = F) + 
-  autolayer(fcast_reg, series = "Linear Regression", PI = F) + 
+  autolayer(fcast_hws_al, series = "HW Seasonal (Linear, Additive)", PI = F) + 
+  autolayer(fcast_hws_ml, series = "HW Seasonal (Linear, Multiplicative)", PI = F) + 
+  autolayer(fcast_hws_ad, series = "HW Seasonal (Damped, Additive)", PI = F) + 
+  autolayer(fcast_hws_md, series = "HW Seasonal (Damped, Multiplicative)", PI = F) + 
   labs(title = "Forecasts vs Test Data", x = "Weeks", y = "Female Birth") + 
   theme(panel.background = element_rect(fill = "white", colour = "black")) + 
-  scale_color_manual(values = rainbow(6))
+  scale_color_manual(values = rainbow(5))
 
 ##------------------------------------------------------------------------------------------
 
