@@ -171,6 +171,50 @@ fcast_hws_md <- hw(ts_train, seasonal = "multiplicative", damped = T, h =h)
 
 ##------------------------------------------------------------------------------------------
 
+## differencing
+library(urca)
+
+# unit root test to identify if differencing is required
+# kpss test
+# null-hypothesis: series is stationary
+# if test-statistic > critical value, null-hypothesis is rejected
+ur.kpss(ts_data, use.lag = 14)%>%
+  summary()
+# at 95% confidence, null-hypothesis is rejected (run the test)
+# series needs differencing
+
+# order of differencing required
+ndiffs(ts_data)
+
+# order of seasonal differencing required
+nsdiffs(ts_data)
+# although seasonal, why output is 0
+# nsdiffs outputs > 0 if strength of seasonality > 0.64
+
+# 1st order differencing
+# 1st order = differencing is done once
+# for seasonal differencing, set lag = seasonality
+ts_diff <- diff(ts_data, lag = 7)
+
+# Ljung-Box test
+Box.test(ts_diff, lag = 14, type = "Ljung-Box")
+
+# plot of differenced series
+autoplot(ts_diff, series = "Differenced Series") + 
+  labs(title = "", x = "Weeks", y = "") + 
+  theme(panel.background = element_rect(fill = "white", colour = "black")) + 
+  scale_color_manual(values = rainbow(1))
+
+# differenced series decomposed
+mstl(ts_diff, robust = T)%>%
+  autoplot(col = T) +
+  labs(x = "Weeks", title = "Seasonally Differenced Data") +
+  theme(panel.background = element_rect(fill = "white", colour = "black")) + 
+  scale_color_manual(values = rainbow(4))
+  
+
+##------------------------------------------------------------------------------------------
+
 # forecast plots
 autoplot(tail(ts_train, 10), series = "Train Data") + 
   autolayer(fcast_hws_al, series = "HW Seasonal (Linear, Additive)", PI = F) + 
