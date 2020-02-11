@@ -178,7 +178,7 @@ library(urca)
 # kpss test
 # null-hypothesis: series is stationary
 # if test-statistic > critical value, null-hypothesis is rejected
-ur.kpss(ts_data, use.lag = 14)%>%
+ur.kpss(ts_diff, use.lag = 14)%>%
   summary()
 # at 95% confidence, null-hypothesis is rejected (run the test)
 # series needs differencing
@@ -194,7 +194,7 @@ nsdiffs(ts_data)
 # 1st order differencing
 # 1st order = differencing is done once
 # for seasonal differencing, set lag = seasonality
-ts_diff <- diff(ts_data, lag = 7)
+ts_diff <- diff(diff(ts_data, 7))
 
 # Ljung-Box test
 Box.test(ts_diff, lag = 14, type = "Ljung-Box")
@@ -208,39 +208,75 @@ autoplot(ts_diff, series = "Differenced Series") +
 # differenced series decomposed
 mstl(ts_diff, robust = T)%>%
   autoplot(col = T) +
-  labs(x = "Weeks", title = "Seasonally Differenced Data") +
+  labs(x = "Weeks", title = "Differenced Data") +
   theme(panel.background = element_rect(fill = "white", colour = "black")) + 
   scale_color_manual(values = rainbow(4))
   
 
 ##------------------------------------------------------------------------------------------
 
+## arima
+# seasonal = T or F depending upon if you want to fit a seasonal model
+# approximation = T if you want a good model, which may not be the best 
+# approximation = T speeds up computation
+# set approximation = F if you want the best model 
+# stepwise = T for stepwise model selection to speed up the computation
+# stepwise = F for extensive search 
+# lambda = BoxCox.lambda() if data needs to be transformed before model fitting 
+# if lambda is set, make biasadj = T to get the mean value of point forecasts
+# if biasadj = F, we get median values of point forecasts
+
+# model with no data transformation
+fit_arima <- auto.arima(y = ts_train, 
+                        seasonal = T, 
+                        approximation = F,
+                        stepwise = F)
+# model summary 
+summary(fit_arima)
+
+# forecasts with no data transformation
+fcast_arima <- forecast(fit_arima, h = h)
+
+# model with data transformation
+fit_arima_tr <- auto.arima(y = ts_train, 
+                        seasonal = T, 
+                        approximation = F,
+                        stepwise = F,
+                        lambda = BoxCox.lambda(ts_train),
+                        biasadj = T)
+# model summary
+summary(fit_arima_tr)
+
+# forecasts with data transformation
+fcast_arima_tr <- forecast(fit_arima_tr, h = h)
+
+
+##------------------------------------------------------------------------------------------
+
 # forecast plots
-autoplot(tail(ts_train, 10), series = "Train Data") + 
-  autolayer(fcast_hws_al, series = "HW Seasonal (Linear, Additive)", PI = F) + 
-  autolayer(fcast_hws_ml, series = "HW Seasonal (Linear, Multiplicative)", PI = F) + 
-  autolayer(fcast_hws_ad, series = "HW Seasonal (Damped, Additive)", PI = F) + 
-  autolayer(fcast_hws_md, series = "HW Seasonal (Damped, Multiplicative)", PI = F) + 
+autoplot(ts_train, series = "Train Data") + 
+  autolayer(fcast_rwf, series = "RWF", PI = F) + 
+  autolayer(fcast_arima, series = "ARIMA", PI = F) +
+  autolayer(fcast_arima_tr, series = "ARIMA (Box-Cox Transformed)", PI = F) +
   labs(title = "Forecasts", x = "Weeks", y = "Female Birth") + 
   theme(panel.background = element_rect(fill = "white", colour = "black")) + 
-  scale_color_manual(values = rainbow(5))
+  scale_color_manual(values = rainbow(4))
 
 # comparison of forecasts with test data
 autoplot(ts_test, series = "Test Data") + 
-  autolayer(fcast_hws_al, series = "HW Seasonal (Linear, Additive)", PI = F) + 
-  autolayer(fcast_hws_ml, series = "HW Seasonal (Linear, Multiplicative)", PI = F) + 
-  autolayer(fcast_hws_ad, series = "HW Seasonal (Damped, Additive)", PI = F) + 
-  autolayer(fcast_hws_md, series = "HW Seasonal (Damped, Multiplicative)", PI = F) + 
-  labs(title = "Forecasts vs Test Data", x = "Weeks", y = "Female Birth") + 
+  autolayer(fcast_rwf, series = "RWF", PI = F) + 
+  autolayer(fcast_arima, series = "ARIMA", PI = F) +
+  autolayer(fcast_arima_tr, series = "ARIMA (Box-Cox Transformed)", PI = F) +
+  labs(title = "Forecasts", x = "Weeks", y = "Female Birth") + 
   theme(panel.background = element_rect(fill = "white", colour = "black")) + 
-  scale_color_manual(values = rainbow(5))
+  scale_color_manual(values = rainbow(4))
 
 ##------------------------------------------------------------------------------------------
 
 ## prediction intervals
 
 # select forecast to be assessed
-fcast <- fcast_hws_al
+fcast <- fcast_arima
 
 # for normally distributed residuals with constant variance
 lower_pi <- fcast$lower; head(lower_pi)
@@ -254,7 +290,7 @@ upper_pi <- fcast$upper; head(upper_pi)
 
 # accuracy of forecasts (RMSE, MAE, MAPE)
 # select forecast to be assessed
-fcast <- fcast_hws_ad
+fcast <- fcast_arima_tr
 accuracy(f = fcast, x = ts_test)[, c("RMSE", "MAE", "MAPE")]
 
 ##------------------------------------------------------------------------------------------
@@ -262,7 +298,7 @@ accuracy(f = fcast, x = ts_test)[, c("RMSE", "MAE", "MAPE")]
 ## residual analysis
 
 # select forecast to be assessed
-fcast <- fcast_reg
+fcast <- fcast_arima
 
 # time plot, acf and histogram
 checkresiduals(fcast)
