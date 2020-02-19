@@ -225,12 +225,16 @@ mstl(ts_diff, robust = T)%>%
 # lambda = BoxCox.lambda() if data needs to be transformed before model fitting 
 # if lambda is set, make biasadj = T to get the mean value of point forecasts
 # if biasadj = F, we get median values of point forecasts
+# if no constant term is required in arima, set allowdrift = F 
 
 # model with no data transformation
 fit_arima <- auto.arima(y = ts_train, 
                         seasonal = T, 
                         approximation = F,
-                        stepwise = F)
+                        stepwise = F,
+                        lambda = BoxCox.lambda(ts_train),
+                        biasadj = T,
+                        allowdrift = F)
 # model summary 
 summary(fit_arima)
 
@@ -238,18 +242,66 @@ summary(fit_arima)
 fcast_arima <- forecast(fit_arima, h = h)
 
 # model with data transformation
-fit_arima_tr <- auto.arima(y = ts_train, 
-                        seasonal = T, 
-                        approximation = F,
-                        stepwise = F,
-                        lambda = BoxCox.lambda(ts_train),
-                        biasadj = T)
+fit_arima_tr <- auto.arima(y = ts_train,
+                           seasonal = T,
+                           approximation = F,
+                           stepwise = F,
+                           lambda = BoxCox.lambda(ts_train),
+                           biasadj = T,
+                           allowdrift = F)
 # model summary
 summary(fit_arima_tr)
 
 # forecasts with data transformation
 fcast_arima_tr <- forecast(fit_arima_tr, h = h)
 
+##------------------------------------------------------------------------------------------
+
+## regression with arima errors
+# seasonal = T or F depending upon if you want to fit a seasonal model
+# approximation = T if you want a good model, which may not be the best 
+# approximation = T speeds up computation
+# set approximation = F if you want the best model 
+# stepwise = T for stepwise model selection to speed up the computation
+# stepwise = F for extensive search 
+# lambda = BoxCox.lambda() if data needs to be transformed before model fitting 
+# if lambda is set, make biasadj = T to get the mean value of point forecasts
+# if biasadj = F, we get median values of point forecasts
+# if no constant term is required in arima, set allowdrift = F 
+# set xreg = column of predictors
+# ensure that names of columns in xreg are the same for both train and test data
+
+# model with no data transformation
+fit_ra <- auto.arima(y = ts_train,
+                     seasonal = T,
+                     approximation = F,
+                     stepwise = F, 
+                     allowdrift = F,
+                     xreg = cbind(trend = trendcycle(mstl(ts_train)), 
+                                  season = seasonal(mstl(ts_train))))
+# model summary 
+summary(fit_ra)
+
+# forecasts with no data transformation
+fcast_ra <- forecast(fit_ra, xreg = cbind(trend = trendcycle(mstl(ts_test)), 
+                                          season = seasonal(mstl(ts_test))), h = h)
+
+# model with data transformation
+fit_ra_tr <- auto.arima(y = ts_train,
+                        seasonal = T,
+                        approximation = F,
+                        stepwise = F,
+                        lambda = BoxCox.lambda(ts_train),
+                        biasadj = T,
+                        allowdrift = F,
+                        xreg = cbind(trend = trendcycle(mstl(ts_train)), 
+                                     season = seasonal(mstl(ts_train))))
+# model summary
+summary(fit_ra_tr)
+
+# forecasts with data transformation
+fcast_ra_tr <- forecast(fit_ra_tr, xreg = cbind(trend = trendcycle(mstl(ts_test)), 
+                                                season = seasonal(mstl(ts_test))), h = h)
 
 ##------------------------------------------------------------------------------------------
 
@@ -276,7 +328,7 @@ autoplot(ts_test, series = "Test Data") +
 ## prediction intervals
 
 # select forecast to be assessed
-fcast <- fcast_arima
+fcast <- fcast_ra
 
 # for normally distributed residuals with constant variance
 lower_pi <- fcast$lower; head(lower_pi)
@@ -290,7 +342,7 @@ upper_pi <- fcast$upper; head(upper_pi)
 
 # accuracy of forecasts (RMSE, MAE, MAPE)
 # select forecast to be assessed
-fcast <- fcast_arima_tr
+fcast <- fcast_ra_tr
 accuracy(f = fcast, x = ts_test)[, c("RMSE", "MAE", "MAPE")]
 
 ##------------------------------------------------------------------------------------------
@@ -298,7 +350,7 @@ accuracy(f = fcast, x = ts_test)[, c("RMSE", "MAE", "MAPE")]
 ## residual analysis
 
 # select forecast to be assessed
-fcast <- fcast_arima
+fcast <- fcast_ra
 
 # time plot, acf and histogram
 checkresiduals(fcast)
