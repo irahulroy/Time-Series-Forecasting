@@ -305,6 +305,31 @@ fcast_ra_tr <- forecast(fit_ra_tr, xreg = cbind(trend = trendcycle(mstl(ts_test)
 
 ##------------------------------------------------------------------------------------------
 
+## dynamic harmonic regression (dhr)
+# fourier terms are used as predictors to capture seasonality
+
+# empty list to store dhr models and forecasts
+fit_dhr <- list()
+fcast_dhr <- list()
+
+# loop to fit different dhr models
+# K <= (seasonal period)/2; so, i ranges from 1 to 3
+for(i in 1:3){
+  fit_dhr[[i]] <- auto.arima(y = ts_train,
+                        seasonal = T,
+                        approximation = F,
+                        stepwise = F, 
+                        allowdrift = F,
+                        xreg = cbind(fr = fourier(ts_train, K = i),
+                                     trend = trendcycle(mstl(ts_train)))) 
+  
+  fcast_dhr[[i]] <- forecast(fit_dhr[[i]], 
+                             xreg = cbind(fr = fourier(ts_test, K = i), 
+                                          trend = trendcycle(mstl(ts_test))), h = h)
+}
+
+##------------------------------------------------------------------------------------------
+
 # forecast plots
 autoplot(ts_train, series = "Train Data") + 
   autolayer(fcast_rwf, series = "RWF", PI = F) + 
@@ -342,7 +367,7 @@ upper_pi <- fcast$upper; head(upper_pi)
 
 # accuracy of forecasts (RMSE, MAE, MAPE)
 # select forecast to be assessed
-fcast <- fcast_ra_tr
+fcast <- fcast_dhr[[3]]
 accuracy(f = fcast, x = ts_test)[, c("RMSE", "MAE", "MAPE")]
 
 ##------------------------------------------------------------------------------------------
@@ -363,3 +388,26 @@ mean(fcast$residuals, na.rm = T)
 
 ##------------------------------------------------------------------------------------------
 
+## final model
+fit_final <- auto.arima(y = ts_data,
+                        seasonal = T,
+                        approximation = F,
+                        stepwise = F, 
+                        allowdrift = F,
+                        xreg = cbind(trend = trendcycle(mstl(ts_data)), 
+                                     season = seasonal(mstl(ts_data))))
+# model summary 
+summary(fit_final)
+
+# forecasts for horizon h_final
+h_final <- 7
+fcast_final <- forecast(fit_final, 
+                        xreg = cbind(trend = tail(trendcycle(mstl(ts_data)), h_final), 
+                                     season = tail(seasonal(mstl(ts_data)), h_final)), 
+                        h = h_final)
+
+##------------------------------------------------------------------------------------------
+
+
+
+                        
