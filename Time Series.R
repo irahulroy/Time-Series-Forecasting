@@ -2,7 +2,7 @@
 
 ##------------------------------------------------------------------------------------------
 
-# TUTORIAL IN PROGRESS
+# TUTORIAL (Statistical Methods for Forecasting)
 
 ##------------------------------------------------------------------------------------------
 
@@ -14,6 +14,7 @@
 
 # import packages
 library(fpp2)
+library(data.table)
 library(tidyverse)
 
 ##------------------------------------------------------------------------------------------
@@ -22,8 +23,10 @@ library(tidyverse)
 file <- "F:/Data Science/R/Time Series/daily-total-female-births-CA.csv"
 
 # load data as dataframe
-df <- read.csv(file, header = T, na.strings = c("", "NA", "NULL"), 
-               strip.white = T, stringsAsFactors = T)
+df <- fread(file)
+
+# save data 
+saveRDS(df, "ts_data.rds")
 
 ##------------------------------------------------------------------------------------------
 
@@ -102,22 +105,17 @@ ggAcf(r, lag.max = 70) +
 
 ## train-test split
 
-# specify fraction of training data (p)
-# compute number of training set observations
-p <- 0.8
-train_length <- ceiling(p*length(ts_data))
+# forecasting horizon (h)
+h <- 28 
 
-# first 80% observations in training data
-# last 20% observations in test data
-ts_train <- head(ts_data, train_length)
-ts_test <- tail(ts_data, (length(ts_data) - train_length))
+# first 'length(ts) - h' observations in training data
+# last 'h' observations in test data
+ts_train <- head(ts_data, length(ts_data) - h)
+ts_test <- tail(ts_data, h)
 
 ##------------------------------------------------------------------------------------------
 
 ## simple forecasting methods
-
-# set forecasting horizon (h) 
-h <- length(ts_test)
 
 # naive = naive forecast
 # rwf = random walk forecast (same as naive: use one of them) 
@@ -178,7 +176,7 @@ library(urca)
 # kpss test
 # null-hypothesis: series is stationary
 # if test-statistic > critical value, null-hypothesis is rejected
-ur.kpss(ts_diff, use.lag = 14)%>%
+ur.kpss(ts_data, use.lag = 14)%>%
   summary()
 # at 95% confidence, null-hypothesis is rejected (run the test)
 # series needs differencing
